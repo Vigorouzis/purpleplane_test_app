@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:purpleplane_test_app/models/post.dart';
-import 'package:purpleplane_test_app/models/user.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:purpleplane_test_app/blocs/main_bloc/main_bloc.dart';
+import 'package:purpleplane_test_app/blocs/main_bloc/main_event.dart';
+import 'package:purpleplane_test_app/blocs/main_bloc/main_state.dart';
 import 'package:purpleplane_test_app/services/api_provider.dart';
-import 'package:purpleplane_test_app/services/shared_prefs.dart';
 
 class MainScreen extends StatefulWidget {
   @override
@@ -11,31 +12,20 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
+  MainBloc _mainBloc;
 
-  SharedPrefs _sharedPref = SharedPrefs();
-  User _user = User();
-  List<Post> _items = List();
   ApiProvider _provider = ApiProvider();
-
-  void loadFromSharedPref() async {
-    _user = User.fromJson(await _sharedPref.read('user'));
-  }
-
-  void getAllPosts() async {
-    _items = await _provider.getPosts();
-  }
 
   void onTabTapped(int index) {
     setState(() {
       _currentIndex = index;
     });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    loadFromSharedPref();
-    getAllPosts();
+    _mainBloc = BlocProvider.of<MainBloc>(context);
+    if (_currentIndex == 0) {
+      _mainBloc.add(GetPost());
+    } else {
+      _mainBloc.add(GetName());
+    }
   }
 
   @override
@@ -43,29 +33,45 @@ class _MainScreenState extends State<MainScreen> {
     return Container(
       child: Scaffold(
         body: SafeArea(
-          child: _currentIndex == 0
-              ? ListView.builder(
-                  itemCount: _items.length,
-                  itemBuilder: (context, index) {
-                    return ListTile(
-                      leading: Text('${index + 1}'),
-                      title: Text(_items[index].body),
-                    );
+          child: BlocBuilder<MainBloc, MainState>(
+            builder: (context, state) {
+              if (state is MainFirst) {
+                return FutureBuilder(
+                  future: _provider.getPosts(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return ListView.builder(
+                        itemCount: state.posts?.length,
+                        itemBuilder: (context, index) {
+                          return ListTile(
+                            leading: Text('${state.posts[index].id}'),
+                            title: Text(state.posts[index].body),
+                          );
+                        },
+                      );
+                    }
+                    return Center(child: Text("Data error"));
                   },
-                )
-              : Center(
+                );
+              }
+              if (state is MainSecond) {
+                return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text('${_user.name}'),
+                      Text('${state.user.name}'),
                       SizedBox(
                         height: 5.0,
                       ),
-                      Text('${_user.singUpDate}'),
+                      Text('${state.user.singUpDate}'),
                     ],
                   ),
-                ),
+                );
+              }
+              return Container();
+            },
+          ),
         ),
         bottomNavigationBar: BottomNavigationBar(
           onTap: onTabTapped,
