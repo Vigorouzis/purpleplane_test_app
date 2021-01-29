@@ -1,9 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:purpleplane_test_app/services/shared_prefs.dart';
-import 'auth.dart';
+import 'registration.dart';
 
-class AuthBloc extends Bloc<AuthEvent, RegistrationState> {
-  AuthBloc() : super(InitRegistrationState());
+class RegistrationBloc extends Bloc<AuthEvent, RegistrationState> {
+  RegistrationBloc() : super(InitRegistrationState());
 
   @override
   Stream<RegistrationState> mapEventToState(AuthEvent event) async* {
