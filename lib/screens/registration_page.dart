@@ -18,7 +18,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   void saveToSharedPref() async {
     _authBloc = BlocProvider.of<RegistrationBloc>(context);
     _authBloc.add(AuthButtonPressed(user: _user));
-    
   }
 
   void seePassword() {
@@ -40,16 +39,17 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             )..show(context);
           }
 
-          if (state is Registrated) {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => LoginScreen(),
-                  ));
-            }
-        },
-        child: BlocBuilder<RegistrationBloc, RegistrationState>(builder: (context, state) {
           if (state is InitRegistrationState) {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => LoginScreen(),
+                ));
+          }
+        },
+        child: BlocBuilder<RegistrationBloc, RegistrationState>(
+            builder: (context, state) {
+          if (state is InitRegistrationState || state is RegistrationFailure) {
             return Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
