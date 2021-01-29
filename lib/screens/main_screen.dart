@@ -14,13 +14,10 @@ class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   MainBloc _mainBloc;
 
-  ApiProvider _provider = ApiProvider();
-
   void onTabTapped(int index) {
     setState(() {
       _currentIndex = index;
     });
-    _mainBloc = BlocProvider.of<MainBloc>(context);
     if (_currentIndex == 0) {
       _mainBloc.add(GetPost());
     } else {
@@ -29,28 +26,30 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _mainBloc = BlocProvider.of<MainBloc>(context);
+    if (_currentIndex == 0) {
+      _mainBloc.add(GetPost());
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    print(_currentIndex);
     return Container(
       child: Scaffold(
         body: SafeArea(
           child: BlocBuilder<MainBloc, MainState>(
             builder: (context, state) {
               if (state is MainFirst) {
-                return FutureBuilder(
-                  future: _provider.getPosts(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      return ListView.builder(
-                        itemCount: state.posts?.length,
-                        itemBuilder: (context, index) {
-                          return ListTile(
-                            leading: Text('${state.posts[index].id}'),
-                            title: Text(state.posts[index].body),
-                          );
-                        },
-                      );
-                    }
-                    return Center(child: Text("Data error"));
+                return ListView.builder(
+                  itemCount: state.posts?.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      leading: Text('${state.posts[index].id}'),
+                      title: Text(state.posts[index].body),
+                    );
                   },
                 );
               }
